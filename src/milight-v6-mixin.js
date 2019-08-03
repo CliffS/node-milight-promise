@@ -100,57 +100,57 @@ var milightV6Mixin = function() {
 
   this._rpcCall = function (byteArray) {
     var buffer = Buffer.from(calcChecksum(byteArray)),
-      self = this;
+        self = this;
 
     return this._sendRequest = helper.settlePromise(this._sendRequest).then(function () {
 
-      return new Promise(function (resolve, reject) {
-        var timeoutId = null;
+      var messageHandler;
+      return Promise.race([
+        new Promise(function (resolve, reject) {
+          var timeoutId = null;
 
-        self._createSocket().then(function () {
-          self._lastBytesSent = byteArray;
-          self.clientSocket.send(buffer
-            , 0
-            , buffer.length
-            , self.port
-            , self.ip
-            , function (err, bytes) {
-              if (err) {
-                helper.debug("UDP socket error:" + err);
-                return reject(err);
-              }
-              else {
-                helper.debug('bytesSent=' + bytes + ', buffer=[' + helper.buffer2hex(buffer) + ']');
-                timeoutId = setTimeout(function() {
-                  timeoutId = null;
-                  self.clientSocket.removeListener('message', messageHandler);
-                  helper.debug('no response timeout');
-                  reject(new Error("no response timeout"))
-                }, (byteArray[0] === 0x80)?250:1000);
-                var messageHandler = function (message, remote) {
-                  if (timeoutId !== null) {
-                    clearTimeout(timeoutId);
-                    timeoutId = null;
-                    self.remoteAddress = remote.address;
-                    helper.debug('bytesReceived=' + message.length + ', buffer=[' + helper.buffer2hex(message) + '], remote=' + remote.address);
-                    Promise.delay(self.delayBetweenCommands).then(function () {
-                      var result = Array.from(message);
-                      helper.debug('ready for next command');
-                      return resolve(result);
-                    });
+          self._createSocket().then(function () {
+            self._lastBytesSent = byteArray;
+            self.clientSocket.send(buffer
+                , 0
+                , buffer.length
+                , self.port
+                , self.ip
+                , function (err, bytes) {
+                  if (err) {
+                    helper.debug("UDP socket error:" + err);
+                    return reject(err);
                   }
-                };
-                self.clientSocket.once('message', messageHandler);
-              }
-            }
-          );
-        }).catch(function (error) {
-          if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-          return reject(error);
+                  else {
+                    helper.debug('bytesSent=' + bytes + ', buffer=[' + helper.buffer2hex(buffer) + ']');
+                    messageHandler = function (message, remote) {
+                      if (timeoutId !== null) {
+                        clearTimeout(timeoutId);
+                        timeoutId = null;
+                        self.remoteAddress = remote.address;
+                        helper.debug('bytesReceived=' + message.length + ', buffer=[' + helper.buffer2hex(message) + '], remote=' + remote.address);
+                        Promise.delay(self.delayBetweenCommands).then(function () {
+                          var result = Array.from(message);
+                          helper.debug('ready for next command');
+                          return resolve(result);
+                        });
+                      }
+                    };
+                    self.clientSocket.once('message', messageHandler);
+                  }
+                }
+            );
+          })
+        }),
+        new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            self.clientSocket.removeListener('message', messageHandler);
+            helper.debug('no response timeout');
+            reject(new Error('no response timeout'))
+          }, (byteArray[0] === 0x80)?250:1000);
         })
+      ]).catch(function(error) {
+        helper.debug('Caught rejection')
       })
     })
   };
@@ -162,15 +162,15 @@ var milightV6Mixin = function() {
     return new Promise(function (resolve, reject) {
       helper.debug("Establishing new session");
       this._createSession()
-        .then(function () {
-          helper.debug("Session initialized");
-          this._scheduleSessionUpdate();
-          resolve();
-        }.bind(this))
-        .catch(function (error) {
-          helper.debug("Session failed:", error);
-          reject(error);
-        })
+          .then(function () {
+            helper.debug("Session initialized");
+            this._scheduleSessionUpdate();
+            resolve();
+          }.bind(this))
+          .catch(function (error) {
+            helper.debug("Session failed:", error);
+            reject(error);
+          })
     }.bind(this));
   };
 
