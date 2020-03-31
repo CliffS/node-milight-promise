@@ -1,6 +1,6 @@
 {
   "name": "node-milight-promise",
-  "version": "0.4.1",
+  "version": "0.3.2",
   "description": "A node module to control Milight LED bulbs and OEM equivalents auch as Rocket LED, Limitless LED Applamp, Easybulb, s`luce, iLight, iBulb, and Kreuzer",
   "author": {
     "name": "Marcus Wittig",
@@ -16,6 +16,7 @@
     "README.md"
   ],
   "scripts": {
+
     "test": "./node_modules/.bin/gulp"
   },
   "homepage": "https://github.com/mwittig/node-milight-promise",
@@ -33,21 +34,21 @@
     "LED"
   ],
   "dependencies": {
-    "bluebird": "^3.5.5",
+    "bluebird": "^3.7.2",
     "promise-retryer": "0.0.1"
   },
   "devDependencies": {
-    "gulp": "^4.0.2",
+    "gulp": "^3.9.1",
     "mwittig-gulp-coveralls": "^0.2.1",
     "gulp-istanbul": "^1.1.3",
     "gulp-jasmine": "^4.0.0",
     "gulp-plumber": "^1.2.1",
-    "gulp-print": "^5.0.2",
-    "gulp-rename": "^1.4.0",
+    "gulp-print": "^3.0.0",
+    "gulp-rename": "^1.2.2",
     "gulp-replace": "^1.0.0",
     "lodash.flattendeep": "^4.4.0"
   },
-  "engines": {
-    "node": ">=4.5.x"
+  "engines" : {
+    "node" : ">=4.5.x"
   }
 }
